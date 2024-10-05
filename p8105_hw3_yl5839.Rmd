@@ -6,13 +6,144 @@ output: github_document
 ---
 
 ```{r setup, include=FALSE}
-knitr::opts_chunk$set(echo = TRUE)
+knitr::opts_chunk$set(echo = TRUE, message = F, warning = F)
 ```
 
-# Problem 0
+Load necessary packages and set options for plot.
 
+```{r}
+library(tidyverse)
+library(p8105.datasets)
+options(
+  ggplot2.continuous.colour = "viridis",
+  ggplot2.continuous.fill = "viridis"
+)
+
+```
 
 # Problem 1
 
+### Data Importing
+
+```{r}
+data("ny_noaa")
+ny_noaa
+```
+
+The dataset I load is strange.
 
 # Problem 2
+
+## Data Wrangling
+
+```{r}
+covar_df = read_csv("data/nhanes_covar.csv",skip = 4) |> 
+  janitor::clean_names() |>
+  filter(age>=21) |> 
+  drop_na() |> 
+  mutate(sex = factor(case_match(sex,
+                          1 ~ 'Male',
+                          2 ~ 'Female')),
+         education =factor(case_match(education,
+                          1 ~ 'Low',
+                          2 ~ 'Medium',
+                          3 ~ 'High'), 
+                          levels = c('Low', 'Medium', 'High'))) 
+
+accel_df = read_csv("data/nhanes_accel.csv") |> 
+  janitor::clean_names()
+
+final_df = covar_df |> 
+  left_join(accel_df, by = 'seqn')
+
+head(final_df,5)
+```
+
+I first load the demographic data and clean the column names. Then I exclude the participents less than 21 years of age by `filter()` and drop those with missing demographic data using `drop_na()`. After that, I load and clean name of the accelerometer data and merge that with demographic data. Finally, I turn the nonnumeric variable in column `seqn`, `sex` and `education` into factors. 
+
+- `seqn`: the identity of each participant
+- `sex`: match 1 ~ 'Male' and 2 ~ 'Female'
+- `education`: 
+  - match 1 ~ 'Low', meaning less than high school
+  - match 2 ~ 'Medium', meaning high school equivalent
+  - match 1 ~ 'High', meaning more than high school.
+
+The final data includes `r nrow(final_df)` participants and the total `r ncol(final_df)` columns record their seqn, sex, age, bmi, education and MIMS values for `r ncol(final_df)-5` minutes of a 24-hour day starting at midnight. 
+
+## Data Summary 
+
+### Table for sex v.s. education
+
+Here is the reader-friendly table for number of men and women in each education category
+
+```{r}
+final_df |> 
+  group_by(sex, education) |> 
+  summarize(count = n()) |> 
+  pivot_wider(names_from = sex, values_from = count) |> 
+  knitr::kable()
+```
+
+**Comment:** The ratio of male and female in low or high education category are nearly 1:1, and it increases to about 7:5 in medium education.
+
+### Plot of age dendity
+
+The following plot shows the age distributions for men and women in each education category.
+
+```{r, fig.width = 8, fig.height = 3}
+final_df |> 
+  ggplot(aes(x=age, color = sex, fill = sex))+
+  geom_density(alpha = .5)+
+  scale_color_brewer(type = 'qual')+
+  scale_fill_brewer(type = 'qual')+
+  facet_grid(~education)
+```
+**Comment:**
+
+- In low education category, the age distributions in male and female are similar. The elder people take a large proportion.
+- In medium education category, people older than 60 take a large proportion in female but the people younger than 40 take a large proportion in male.
+- In high education category, the density of people under 40 is larger than that in male. 
+
+## Data Analysis
+
+### Plot of Total Activities 
+
+Here is the scatter plot with the smooth trend of total activities of men and women in different education category.
+
+```{r, fig.width = 8, fig.height = 3}
+final_df |> 
+  mutate(total_act = rowMeans(final_df[6:ncol(final_df)])) |> 
+  ggplot(aes(x=age, y= total_act, fill = sex, color = sex))+
+  geom_point(alpha = .5)+
+  geom_smooth(se= F)+
+  scale_color_brewer(type = 'qual')+
+  scale_fill_brewer(type = 'qual')+
+  facet_grid(~education)
+```
+
+**Comment:**
+
+From here unfinished .
+Need to be done ()!!!
+
+### Plot for 24-hour activity time
+
+```{r, fig.width = 8, fig.height = 6}
+final_df |> pivot_longer(
+  min1:min1440,
+  names_to = 'min',
+  names_prefix = 'min',
+  values_to = 'act_time'
+) |> 
+  mutate(min = as.numeric(min)) |> 
+  ggplot(aes(x=min, y= act_time, fill = sex, color = sex))+
+  geom_point(alpha = .5, size= .3)+
+  geom_smooth(se= F)+
+  scale_color_brewer(type = 'qual')+
+  scale_fill_brewer(type = 'qual')+
+  facet_grid(education ~.)
+```
+
+
+
+# Problem 3
