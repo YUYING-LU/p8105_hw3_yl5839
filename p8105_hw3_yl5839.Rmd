@@ -61,11 +61,11 @@ head(final_df,5)
 
 I first load the demographic data and clean the column names. Then I exclude the participents less than 21 years of age by `filter()` and drop those with missing demographic data using `drop_na()`. After that, I load and clean name of the accelerometer data and merge that with demographic data. Finally, I turn the nonnumeric variable in column `seqn`, `sex` and `education` into factors. 
 
-- `seqn`: the identity of each participant
-- `sex`: match 1 ~ 'Male' and 2 ~ 'Female'
+- `seqn`: the identity of each participant.
+- `sex`: match 1 ~ 'Male' and 2 ~ 'Female'.
 - `education`: 
-  - match 1 ~ 'Low', meaning less than high school
-  - match 2 ~ 'Medium', meaning high school equivalent
+  - match 1 ~ 'Low', meaning less than high school;
+  - match 2 ~ 'Medium', meaning high school equivalent;
   - match 1 ~ 'High', meaning more than high school.
 
 The final data includes `r nrow(final_df)` participants and the total `r ncol(final_df)` columns record their seqn, sex, age, bmi, education and MIMS values for `r ncol(final_df)-5` minutes of a 24-hour day starting at midnight. 
@@ -74,7 +74,7 @@ The final data includes `r nrow(final_df)` participants and the total `r ncol(fi
 
 ### Table for sex v.s. education
 
-Here is the reader-friendly table for number of men and women in each education category
+Here is the reader-friendly table for number of men and women in each education category.
 
 ```{r}
 final_df |> 
@@ -94,8 +94,6 @@ The following plot shows the age distributions for men and women in each educati
 final_df |> 
   ggplot(aes(x=age, color = sex, fill = sex))+
   geom_density(alpha = .5)+
-  scale_color_brewer(type = 'qual')+
-  scale_fill_brewer(type = 'qual')+
   facet_grid(~education)
 ```
 **Comment:**
@@ -116,34 +114,44 @@ final_df |>
   ggplot(aes(x=age, y= total_act, fill = sex, color = sex))+
   geom_point(alpha = .5)+
   geom_smooth(se= F)+
-  scale_color_brewer(type = 'qual')+
-  scale_fill_brewer(type = 'qual')+
   facet_grid(~education)
 ```
 
 **Comment:**
 
-From here unfinished .
-Need to be done ()!!!
+- In low education category, the average of total activity value of women under 40 is higher than that of men in the same age. However, the average of total activity value of women over 40 is lower than that of men in the same age. Additionally, the younger ones have significant more activities than the older ones.
+- In medium education category, the average of total activity value of women is higher than that of men in the same age except the group under 25, where men have higher values than the same age women. Besides, the people at around 40 years old have the highest total activity values while people over 60 years old generally have the total activity values.
+- In high education category, the average of total activity value of women is higher than that of men in the same age. And there's only a little decrease in the total activity values among the old ones than that among the younger ones.
 
-### Plot for 24-hour activity time
+### Plot for 24-hour Activity Time
 
-```{r, fig.width = 8, fig.height = 6}
+I divide the MIMS values in to 24 hours category and make the box plot of the mean value among different sex and education level. 
+
+```{r, fig.width = 10, fig.height = 6}
 final_df |> pivot_longer(
   min1:min1440,
   names_to = 'min',
   names_prefix = 'min',
   values_to = 'act_time'
 ) |> 
-  mutate(min = as.numeric(min)) |> 
-  ggplot(aes(x=min, y= act_time, fill = sex, color = sex))+
-  geom_point(alpha = .5, size= .3)+
+  mutate(min = as.numeric(min),
+         hour = factor(paste0(ceiling(min/60)-1,'-',(ceiling(min/60))%%24,'h')),
+         hour = forcats::fct_reorder(hour, min, median)) |>
+  ggplot(aes(x=hour, y= act_time, fill = sex, color = sex))+
+  geom_boxplot(alpha=.5, position = 'dodge',outlier.size=.5)+
   geom_smooth(se= F)+
-  scale_color_brewer(type = 'qual')+
-  scale_fill_brewer(type = 'qual')+
-  facet_grid(education ~.)
+  facet_grid(education~.)+
+  theme(axis.text.x = element_text(angle = 45, hjust = 1))
 ```
 
 
+**Comment:**
+
+- In low education category, there isn't much different between women and men in different time slot within a 24-hour day. However, men have slightly higher mean MIMS values than women from 8pm to 8am the next day.
+- In medium education category, the mean MIMS value doesn't vary much between different sex. 
+- In high education category, women have higher mean MIMS values than men in the day (from 7am to 8pm), while in the other time, there isn't much significant difference between people of different sex.
+
+In general level, if compare people of different sex at the same time period of the day, men have higher mean MIMS value around the midnight while women have higher mean MIMS value in the day. This applies to all the three education category. Besides, people generally have high MINS value in the day time and low value during the night.
 
 # Problem 3
+
