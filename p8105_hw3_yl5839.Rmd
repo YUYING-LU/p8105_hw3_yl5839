@@ -1,0 +1,18 @@
+---
+title: "p8105_hw3_yl5839"
+author: "Yuying Lu (yl5839)"
+date: "2024-10-05"
+output: github_document
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+# Problem 0
+
+
+# Problem 1
+
+
+# Problem 2
