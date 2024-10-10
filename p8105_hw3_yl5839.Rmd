@@ -104,7 +104,7 @@ final_df |>
 
 ## Data Analysis
 
-### Plot of Total Activities 
+### Plot of total activities 
 
 Here is the scatter plot with the smooth trend of total activities of men and women in different education category.
 
@@ -123,7 +123,7 @@ final_df |>
 - In medium education category, the average of total activity value of women is higher than that of men in the same age except the group under 25, where men have higher values than the same age women. Besides, the people at around 40 years old have the highest total activity values while people over 60 years old generally have the total activity values.
 - In high education category, the average of total activity value of women is higher than that of men in the same age. And there's only a little decrease in the total activity values among the old ones than that among the younger ones.
 
-### Plot for 24-hour Activity Time
+### Plot for 24-hour activity time
 
 I divide the MIMS values in to 24 hours category and make the box plot of the mean value among different sex and education level. 
 
@@ -151,7 +151,83 @@ final_df |> pivot_longer(
 - In medium education category, the mean MIMS value doesn't vary much between different sex. 
 - In high education category, women have higher mean MIMS values than men in the day (from 7am to 8pm), while in the other time, there isn't much significant difference between people of different sex.
 
-In general level, if compare people of different sex at the same time period of the day, men have higher mean MIMS value around the midnight while women have higher mean MIMS value in the day. This applies to all the three education category. Besides, people generally have high MINS value in the day time and low value during the night.
+Gernally speaking, comparing people of different sex at the same time period of the day, I find men have higher mean MIMS value around the midnight while women have higher mean MIMS value in the day. This applies to all the three education category. Besides, people generally have high MINS value in the day time and low value during the night.
 
 # Problem 3
+
+## Data Importing and Cleaning
+
+```{r}
+jan2020_df = read_csv('data/citibike/Jan 2020 Citi.csv') |> 
+  mutate(date = 'Jan2020')
+
+july2020_df = read_csv('data/citibike/July 2020 Citi.csv') |> 
+  mutate(date = 'July2020')
+
+jan2024_df = read_csv('data/citibike/Jan 2024 Citi.csv') |> 
+  mutate(date = 'Jan2024')
+
+july2024_df = read_csv('data/citibike/July 2024 Citi.csv') |> 
+  mutate(date = 'July2024')
+
+result_df = rbind(jan2020_df, july2020_df, jan2024_df, july2024_df) |>
+  janitor::clean_names() |> 
+  drop_na()
+
+result_df 
+```
+
+**Description:**
+There are datasets in four combinations of year and month -- Jan 2020, July 2020, Jan 2024 and July 2024. I combind these four dataset and add a column `data` to distinguish the rides in different months. After dropping the row that contains `NA` and cleaning the column names, I get the resulting dataset with `r nrow(result_df)` rows and `r ncol(result_df)` columns. Each row represents a ride and the columns record its ride ID, rideable_type, which weekdays the ride occurred, duration, start and end station, the rider's identity (member or casual), and the year and month data of that ride. 
+
+## Reader-friendly Table 
+
+### Showing total number of rides
+
+```{r}
+result_df |> 
+  group_by(date, member_casual) |> 
+  mutate(date = factor(date, levels = c('Jan2020', 'July2020','Jan2024','July2024'))) |> 
+  summarise(count=n()) |> 
+  pivot_wider(names_from = member_casual, values_from = count) |> 
+  knitr::kable()
+```
+
+**Comment:**
+
+- In the same year, the total number of rides is larger in July than that in Jan;
+- In the same combination of the year and month, the total number of rides in member is larger than that in casual riders;
+- The total number of rides is increasing with time goes by.
+
+### Showing 5 most popular starting stations for July 2024 
+
+```{r}
+pop_stat = july2024_df |> 
+  group_by(start_station_name) |> 
+  summarise(number=n()) |> 
+  arrange(desc(number)) 
+  
+knitr::kable(pop_stat[1:5,])
+```
+
+
+The most popular stations for July 2024 are `r pop_stat$start_station_name[1:5]`,
+with the total number of rides recorded in the column `number` in the table.
+
+
+## Plotting
+
+```{r}
+result_df |> 
+  group_by(date, weekdays) |> 
+  summarise(median_duration = median(duration)) |> 
+  mutate(weekdays = factor(weekdays, levels = c('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'))) |> 
+  ggplot(aes(x = weekdays, y = median_duration, color = date)) +
+  geom_point(aes(shape = date), size = 2)
+```
+
+
+**Comment:**
+
+- 
 
