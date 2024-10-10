@@ -221,7 +221,8 @@ with the total number of rides recorded in the column `number` in the table.
 result_df |> 
   group_by(date, weekdays) |> 
   summarise(median_duration = median(duration)) |> 
-  mutate(weekdays = factor(weekdays, levels = c('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday'))) |> 
+  mutate(weekdays = factor(weekdays, levels = c('Sunday', 'Monday', 'Tuesday', 'Wednesday', 'Thursday', 'Friday', 'Saturday')),
+         date = factor(date, levels = c('Jan2020', 'July2020','Jan2024','July2024'))) |> 
   ggplot(aes(x = weekdays, y = median_duration, color = date)) +
   geom_point(aes(shape = date), size = 2)
 ```
