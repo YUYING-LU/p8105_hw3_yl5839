@@ -202,7 +202,8 @@ result_df |>
 ### Showing 5 most popular starting stations for July 2024 
 
 ```{r}
-pop_stat = july2024_df |> 
+pop_stat = result_df |> 
+  filter(date == 'July2024') |> 
   group_by(start_station_name) |> 
   summarise(number=n()) |> 
   arrange(desc(number)) 
@@ -217,6 +218,8 @@ with the total number of rides recorded in the column `number` in the table.
 
 ## Plotting
 
+### Effects of the day of the week, month and year 
+
 ```{r}
 result_df |> 
   group_by(date, weekdays) |> 
@@ -230,5 +233,24 @@ result_df |>
 
 **Comment:**
 
-- 
+- The median ride duration are in same order which is July2020 > July2024 > Jan2020 > Jan2024; 
+- Within the same year, the median ride duration in Jan is generally shorter than that in July.
+- Within the same year and month expect Jan 2024, the duration of the median rides of weekends are longer (Sunday and Saturday) than that of weekdays.
+
+###  Impact of month, membership status, and bike type on the distribution of ride duration
+
+```{r}
+result_df |> 
+  filter(date %in% c('Jan2024', 'July2024')) |> 
+  ggplot(aes(x= duration, fill = factor(member_casual),color = factor(member_casual)))+
+  geom_density(alpha = .5)+
+  facet_grid(date~rideable_type)
+  
+```
+
+**Comment:**
+
+- Casual riders are more likely to have a longer ride duration than members do, especially when they're using classic bike. Maybe it's because when using the electric bikes, the gap between duration is reduced because of the higher speed of electric bike;
+- The density of longer duration of classic bike is higher than that of electric one;
+- The riding duration of electric bikes is increasing from Jan to July.
 
