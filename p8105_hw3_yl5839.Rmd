@@ -86,7 +86,7 @@ final_df |>
 
 **Comment:** The ratio of male and female in low or high education category are nearly 1:1, and it increases to about 7:5 in medium education.
 
-### Plot of age dendity
+### Plot of age density
 
 The following plot shows the age distributions for men and women in each education category.
 
