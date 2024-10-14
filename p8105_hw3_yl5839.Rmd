@@ -30,7 +30,7 @@ data("ny_noaa")
 ny_noaa
 ```
 
-This dataset contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)`, recording maximum and minimum temperature, total daily precipitation, snowfall, and snow depth in different satations each day. However, there is lots of missing values in this data set, so we should drop the NA's before we conduct further data analysis.
+This dataset contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)` columns, recording maximum and minimum temperature, total daily precipitation, snowfall, and snow depth in different satations each day. However, there is lots of missing values in this data set, so we should drop the NA's before we conduct further data analysis.
 
 
 ```{r}
