@@ -23,14 +23,90 @@ options(
 
 # Problem 1
 
-### Data Importing
+## Data Importing and Cleaning
 
 ```{r}
 data("ny_noaa")
 ny_noaa
 ```
 
-The dataset I load is strange.
+This dataset contains `r nrow(ny_noaa)` rows and `r ncol(ny_noaa)`, recording maximum and minimum temperature, total daily precipitation, snowfall, and snow depth in different satations each day. However, there is lots of missing values in this data set, so we should drop the NA's before we conduct further data analysis.
+
+
+```{r}
+data_df = 
+  ny_noaa |> 
+  drop_na() |> 
+  janitor::clean_names() |> 
+  mutate(year = format(date, "%Y"),
+         month = format(date, "%m"),
+         day = format(date, "%d"),
+         tmax = as.numeric(tmax),
+         tmin = as.numeric(tmin))
+head(data_df,5)
+```
+
+```{r}
+summary(data_df[,3:6])
+```
+
+Notice that there is negative number for snowfall, thus we further filter the data to ensure that all the rows contain reasonable value in each unit.
+
+### Data Filtering
+
+```{r}
+data_df = data_df |> filter(snow>=0)
+summary(data_df[,3:6])
+```
+From the summary of the filtered data, we can see the 3rd quantile of the snowfall is 0, which implies 0 is the most commonly observed values.
+
+## Two-panel Plot
+
+### Average max temperature
+
+```{r, fig.width= 15, fig.height=8}
+data_df |> 
+  filter(month %in% c('01', '07')) |> 
+  group_by(id,year,month) |> 
+  summarise(mean_tmax=mean(tmax)) |> 
+  ggplot(aes(x = year, y = mean_tmax)) + 
+  geom_boxplot()+
+  facet_grid(month~.)
+
+```
+**Comment:** Generally, the average max temperature in July in each station across years is higher that that in January. Additionally, according to the box-plot, there are outliers of the average max temperature in January and in July in most of the years.
+
+### `tmax` vs `tmin`
+
+```{r, fig.width= 16, fig.height=6}
+data_df |> 
+  pivot_longer(
+    tmax:tmin,
+    values_to = 'temp',
+    names_to = 'type'
+  ) |> 
+  ggplot(aes(x = month, y = temp)) + 
+  geom_boxplot()+
+  facet_grid(~type)
+
+```
+
+**Comment:** I plot the box plot for `tmax` and `tmin` by month. According to the figure, the distibution of tmax and tmin have similar pattern within a year.
+
+
+### distribution of snowfall seperately by year
+
+```{r, fig.width= 15, fig.height=12}
+data_df |> 
+  filter((snow > 0) & (snow < 100)) |>  
+  ggplot(aes(x = snow)) + 
+  geom_density()+
+  facet_wrap(~year, ncol= 6)
+
+```
+
+
+**Comment:** The distribution of the snowfall in each year has similar pattern. The snow values between 1-25 have higher density than the values larger than 25. Additionally, there are spikes at value 50 and 75 in the density distribution of the snowfall in each year. 
 
 # Problem 2
 
